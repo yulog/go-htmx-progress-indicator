@@ -1,0 +1,114 @@
+package components
+
+import (
+	"fmt"
+)
+
+templ Head() {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width"/>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+		</head>
+		<body class="section">
+			{ children... }
+		</body>
+	</html>
+}
+
+templ Index() {
+	@Head() {
+		<div hx-target="this" hx-swap="outerHTML">
+			<h3>Start Progress</h3>
+			<form hx-post="/start">
+				<label class="label">
+					ID
+					<div class="field has-addons">
+						<div class="control">
+							<input class="input" name="id" type="text"/>
+						</div>
+						<div class="control">
+							<button class="button is-link">
+								Start Job
+							</button>
+						</div>
+					</div>
+					<p class="help"></p>
+				</label>
+			</form>
+		</div>
+	}
+}
+
+templ Start() {
+	@Head() {
+		<div hx-trigger="done" hx-get="/job" hx-swap="outerHTML" hx-target="this">
+			<h3 role="status" id="pblabel" tabindex="-1" autofocus>Running</h3>
+			<form hx-post="/start">
+				<label class="label">
+					ID
+					<div class="field has-addons">
+						<div class="control">
+							<input class="input" name="id" type="text" disabled/>
+						</div>
+						<div class="control">
+							<button class="button is-link is-loading">
+								Start Job
+							</button>
+						</div>
+					</div>
+					<div
+						hx-get="/job/progress"
+						hx-trigger="every 600ms"
+						hx-target="this"
+						hx-swap="innerHTML"
+					>
+						<p class="help progress">
+							0
+						</p>
+					</div>
+				</label>
+			</form>
+		</div>
+	}
+}
+
+templ Progress(p int) {
+	<p class="help progress">
+		{ fmt.Sprintf("%d", p) }
+	</p>
+}
+
+templ Job(p int) {
+	<div hx-trigger="done" hx-get="/job" hx-swap="outerHTML" hx-target="this">
+		<h3 role="status" id="pblabel" tabindex="-1" autofocus>Complete</h3>
+		<form hx-post="/start" classes="add show:600ms">
+			<label class="label">
+				ID
+				<div class="field has-addons">
+					<div class="control">
+						<input class="input" name="id" type="text"/>
+					</div>
+					<div class="control">
+						<button class="button is-link">
+							Start Job
+						</button>
+					</div>
+				</div>
+				<div
+					hx-get="/job/progress"
+					hx-trigger="none"
+					hx-target="this"
+					hx-swap="innerHTML"
+				>
+					<p class="help progress">
+						{ fmt.Sprintf("%d", p) }
+					</p>
+				</div>
+			</label>
+		</form>
+	</div>
+}
